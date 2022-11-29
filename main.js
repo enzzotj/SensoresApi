@@ -11,23 +11,17 @@ const SERVIDOR_PORTA = 3300;
 // configure a linha abaixo caso queira que os dados capturados sejam inseridos no banco de dados.
 // false -> nao insere
 // true -> insere
-const HABILITAR_OPERACAO_INSERIR = false;
+const HABILITAR_OPERACAO_INSERIR = true;
 
 // altere o valor da variável AMBIENTE para o valor desejado:
 // API conectada ao banco de dados remoto, SQL Server -> 'producao'
 // API conectada ao banco de dados local, MySQL Workbench - 'desenvolvimento'
-const AMBIENTE = 'desenvolvimento';
+const AMBIENTE = 'producao';
 const serial = async (
     valoresDht11Umidade1,
     valoresDht11Temperatura1,
     valoresDht11Umidade2,
-    valoresDht11Temperatura2,
-    valoresDht11Umidade3,
-    valoresDht11Temperatura3,
-    valoresDht11Umidade4,
-    valoresDht11Temperatura4,
-    valoresDht11Umidade5,
-    valoresDht11Temperatura5
+    valoresDht11Temperatura2
 ) => {
     let poolBancoDados = ''
 
@@ -70,24 +64,13 @@ const serial = async (
         const dht11Temperatura1 = parseFloat(valores[1]);
         const dht11Umidade2 = parseFloat(valores[2]);
         const dht11Temperatura2 = parseFloat(valores[3]);
-        const dht11Umidade3 = parseFloat(valores[4]);
-        const dht11Temperatura3 = parseFloat(valores[5]);
-        const dht11Umidade4 = parseFloat(valores[6]);
-        const dht11Temperatura4 = parseFloat(valores[7]);
-        const dht11Umidade5 = parseFloat(valores[8]);
-        const dht11Temperatura5 = parseFloat(valores[9]);
         
 
         valoresDht11Umidade1.push(dht11Umidade1);
         valoresDht11Temperatura1.push(dht11Temperatura1);
         valoresDht11Umidade2.push(dht11Umidade2);
         valoresDht11Temperatura2.push(dht11Temperatura2);
-        valoresDht11Umidade3.push(dht11Umidade3);
-        valoresDht11Temperatura3.push(dht11Temperatura3);
-        valoresDht11Umidade4.push(dht11Umidade4);
-        valoresDht11Temperatura4.push(dht11Temperatura4);
-        valoresDht11Umidade5.push(dht11Umidade5);
-        valoresDht11Temperatura5.push(dht11Temperatura5);
+
 
 
         if (HABILITAR_OPERACAO_INSERIR) {
@@ -97,16 +80,16 @@ const serial = async (
                 // -> altere nome da tabela e colunas se necessário
                 // Este insert irá inserir dados de fk_aquario id=1 (fixo no comando do insert abaixo)
                 // >> Importante! você deve ter o aquario de id 1 cadastrado.
-                sqlquery = `INSERT INTO sensor (umidade1, temperatura1, umidade2, temperatura2, umidade3, temperatura3, umidade4, temperatura4, umidade5, temperatura5) VALUES (${dht11Umidade1}, ${dht11Temperatura1},${dht11Umidade2}, ${dht11Temperatura2}, ${dht11Umidade3}, ${dht11Temperatura3}, ${dht11Umidade4}, ${dht11Temperatura4}, ${dht11Umidade5}, ${dht11Temperatura5})`;
+                sqlquery = `INSERT INTO Dados_Sensor (Umidade ,Temperatura, DiaHora, alert, fkSensor) VALUES (${dht11Umidade1}, ${dht11Temperatura1}, GETDATE(), 0,1), (${dht11Umidade2}, ${dht11Temperatura2}, GETDATE(), 0,2)`;
 
                 // CREDENCIAIS DO BANCO REMOTO - SQL SERVER
                 // Importante! você deve ter criado o usuário abaixo com os comandos presentes no arquivo
                 // "script-criacao-usuario-sqlserver.sql", presente neste diretório.
-                const connStr = "Server=servidor-acquatec.database.windows.net;Database=FungiTec;User Id=aluno;Password=sptech;";
+                const connStr = "Server=svr-projeto-fungitech.database.windows.net;Database=bd-fungitec;User Id=adm-projeto-fungitech;Password=#Gfgrupo11;";
 
                 function inserirComando(conn, sqlquery) {
                     conn.query(sqlquery);
-                    console.log("valores inseridos no banco: ", dht11Umidade1 + ", " + dht11Temperatura1 + ", " + dht11Umidade2 + ", " + dht11Temperatura2 + ", " + dht11Umidade3 + ", " + dht11Temperatura3 + ", " + dht11Umidade4 + ", " + dht11Temperatura4 + ", " + dht11Umidade5 + ", " + dht11Temperatura5)
+                    console.log("valores inseridos no banco: ", dht11Umidade1 + ", " + dht11Temperatura1 + ", " + dht11Umidade2 + ", " + dht11Temperatura2)
                 }
 
                 sql.connect(connStr)
@@ -121,10 +104,10 @@ const serial = async (
                 // Este insert irá inserir dados de fk_aquario id=1 (fixo no comando do insert abaixo)
                 // >> você deve ter o aquario de id 1 cadastrado.
                 await poolBancoDados.execute(
-                    'INSERT INTO sensor (umidade1, temperatura1, umidade2, temperatura2, umidade3, temperatura3, umidade4, temperatura4, umidade5, temperatura5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [dht11Umidade1, dht11Temperatura1, dht11Umidade2, dht11Temperatura2, dht11Umidade3, dht11Temperatura3, dht11Umidade4, dht11Temperatura4, dht11Umidade5, dht11Temperatura5]
+                    'INSERT INTO sensor (nomeSensor ,umidade, temperatura) VALUES ("Sensor1" ,?, ?), ("Sensor2" ,?, ?)',
+                    [dht11Umidade1, dht11Temperatura1, dht11Umidade2, dht11Temperatura2],
                 );
-                console.log("valores inseridos no banco: ", dht11Umidade1 + ", " + dht11Temperatura1 + ", " + dht11Umidade2 + ", " + dht11Temperatura2 + ", " + dht11Umidade3 + ", " + dht11Temperatura3 + ", " + dht11Umidade4 + ", " + dht11Temperatura4 + ", " + dht11Umidade5 + ", " + dht11Temperatura5)
+                console.log("valores inseridos no banco: ", dht11Umidade1 + ", " + dht11Temperatura1 + ", " + dht11Umidade2 + ", " + dht11Temperatura2)
 
             } else {
                 throw new Error('Ambiente não configurado. Verifique o arquivo "main.js" e tente novamente.');
@@ -142,13 +125,7 @@ const servidor = (
     valoresDht11Umidade1,
     valoresDht11Temperatura1,
     valoresDht11Umidade2,
-    valoresDht11Temperatura2,
-    valoresDht11Umidade3,
-    valoresDht11Temperatura3,
-    valoresDht11Umidade4,
-    valoresDht11Temperatura4,
-    valoresDht11Umidade5,
-    valoresDht11Temperatura5
+    valoresDht11Temperatura2
 ) => {
     const app = express();
     app.use((request, response, next) => {
@@ -171,24 +148,6 @@ const servidor = (
     app.get('/sensores/dht11/temperatura2', (_, response) => {
         return response.json(valoresDht11Temperatura2);
     });
-    app.get('/sensores/dht11/umidade3', (_, response) => {
-        return response.json(valoresDht11Umidade3);
-    });
-    app.get('/sensores/dht11/temperatura3', (_, response) => {
-        return response.json(valoresDht11Temperatura3);
-    });
-    app.get('/sensores/dht11/umidade4', (_, response) => {
-        return response.json(valoresDht11Umidade4);
-    });
-    app.get('/sensores/dht11/temperatura4', (_, response) => {
-        return response.json(valoresDht11Temperatura4);
-    });
-    app.get('/sensores/dht11/umidade5', (_, response) => {
-        return response.json(valoresDht11Umidade5);
-    });
-    app.get('/sensores/dht11/temperatura5', (_, response) => {
-        return response.json(valoresDht11Temperatura5);
-    });
 }
 
 (async () => {
@@ -196,35 +155,17 @@ const servidor = (
     const valoresDht11Temperatura1 = [];
     const valoresDht11Umidade2 = [];
     const valoresDht11Temperatura2 = [];
-    const valoresDht11Umidade3 = [];
-    const valoresDht11Temperatura3 = [];
-    const valoresDht11Umidade4 = [];
-    const valoresDht11Temperatura4 = [];
-    const valoresDht11Umidade5 = [];
-    const valoresDht11Temperatura5 = [];
     await serial(
         valoresDht11Umidade1,
         valoresDht11Temperatura1,
         valoresDht11Umidade2,
-        valoresDht11Temperatura2,
-        valoresDht11Umidade3,
-        valoresDht11Temperatura3,
-        valoresDht11Umidade4,
-        valoresDht11Temperatura4,
-        valoresDht11Umidade5,
-        valoresDht11Temperatura5
+        valoresDht11Temperatura2
 
     );
     servidor(
         valoresDht11Umidade1,
         valoresDht11Temperatura1,
         valoresDht11Umidade2,
-        valoresDht11Temperatura2,
-        valoresDht11Umidade3,
-        valoresDht11Temperatura3,
-        valoresDht11Umidade4,
-        valoresDht11Temperatura4,
-        valoresDht11Umidade5,
-        valoresDht11Temperatura5
+        valoresDht11Temperatura2
     );
 })();

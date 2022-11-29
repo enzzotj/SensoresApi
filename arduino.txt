@@ -1,0 +1,54 @@
+#include "DHT.h"
+#define dht_type DHT11 
+
+
+int dht_pin = A2;
+DHT dht_1 = DHT(dht_pin, dht_type);
+int lm35_pin = A0, leitura_lm35 = 0;
+float temperatura;
+int ldr_pin = A5, leitura_ldr = 0;
+int switch_pin = 7;
+
+void setup()
+{
+Serial.begin(9600);
+dht_1.begin();
+pinMode(switch_pin, INPUT);
+}
+
+void loop()
+{
+float umidade = dht_1.readHumidity();
+float temperatura = dht_1.readTemperature();
+
+float umidade1 = umidade * 0.95238 + 19.28578;
+float temperatura1 = temperatura * 1.25 - 12;
+
+float umidade2 = umidade * 0.95238 + 14.28578;
+float temperatura2 = temperatura * 1.25 - 3;
+
+float umidadeNormal1 = umidade * 0.95238 + 21.28578;
+float temperaturaNormal1 = temperatura * 1.25 - 8;
+
+
+float umidadeNormal2 = umidade * 0.95238 + 15.28578;
+float temperaturaNormal2 = temperatura * 1.25 - 9;
+
+if (isnan(temperatura) or isnan(umidade))
+{
+Serial.println("Erro ao ler o DHT");
+}
+else
+{
+Serial.print(umidade1);
+Serial.print(";");
+Serial.print(temperatura1);
+Serial.print(";");
+Serial.print(umidade2);
+Serial.print(";");
+Serial.print(temperatura2);
+Serial.println(";");
+}
+
+delay(10000);
+}
